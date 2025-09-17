@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Infirmier</title>
+</head>
+<body>
+    <h1>Bienvenue, Infirmière!</h1>
+    
+    <h2>Gestion des "Check-in"</h2>
+    <p>Liste des rendez-vous pour la journée:</p>
+    <ul id="appointments-list">
+        </ul>
+
+    <h2>Saisie des Signes Vitaux</h2>
+    <form id="vitalsForm">
+        <label for="patient_id">ID du patient:</label><br>
+        <input type="number" id="patient_id" name="patient_id" required><br><br>
+        
+        <label for="blood_pressure">Tension artérielle:</label><br>
+        <input type="text" id="blood_pressure" name="blood_pressure" placeholder="Ex: 120/80" required><br><br>
+        
+        <label for="temperature">Température (°C):</label><br>
+        <input type="number" step="0.1" id="temperature" name="temperature" required><br><br>
+        
+        <label for="notes">Notes:</label><br>
+        <textarea id="notes" name="notes"></textarea><br><br>
+        
+        <button type="submit">Enregistrer les signes vitaux</button>
+    </form>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        const token = localStorage.getItem('jwtToken');
+
+        async function fetchAppointments() {
+            try {
+                const response = await fetch(`${API_URL}/appointments/nurse`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const appointments = await response.json();
+                
+                const list = document.getElementById('appointments-list');
+                list.innerHTML = '';
+                appointments.forEach(app => {
+                    const li = document.createElement('li');
+                    li.textContent = `Date: ${new Date(app.date_time).toLocaleString()} - Patient: ${app.patient_name} - Docteur: ${app.doctor_email}`;
+                    list.appendChild(li);
+                });
+            } catch (error) {
+                console.error('Erreur lors de la récupération des rendez-vous:', error);
+            }
+        }
+        
+        document.getElementById('vitalsForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch(`${API_URL}/vitals`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    alert('Signes vitaux enregistrés avec succès!');
+                    e.target.reset();
+                } else {
+                    const result = await response.json();
+                    alert('Erreur: ' + (result.message |
+
+| JSON.stringify(result.errors)));
+                }
+            } catch (error) {
+                console.error('Erreur de soumission:', error);
+                alert('Erreur de connexion au serveur.');
+            }
+        });
+
+        fetchAppointments();
+    </script>
+</body>
+</html>

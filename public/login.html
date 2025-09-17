@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Connexion Clinique</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        input { padding: 8px; width: 250px; margin-bottom: 10px; }
+        button { padding: 8px 16px; }
+        #message { margin-top: 10px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Connexion à l'application de gestion de clinique</h1>
+
+    <form id="loginForm">
+        <label for="email">Email:</label><br>
+        <input type="email" id="email" name="email" required><br>
+
+        <label for="password">Mot de passe:</label><br>
+        <input type="password" id="password" name="password" required><br>
+
+        <button type="submit">Se connecter</button>
+    </form>
+
+    <div id="message"></div>
+
+    <script>
+        const loginForm = document.getElementById("loginForm");
+        const messageDiv = document.getElementById("message");
+
+        loginForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            try {
+                const response = await fetch("/api/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    messageDiv.style.color = "green";
+                    messageDiv.textContent = `Connexion réussie ! Rôle ID: ${result.role}.`;
+                    console.log("Token JWT:", result.token);
+                    localStorage.setItem("jwtToken", result.token);
+
+                    // Redirection selon le rôle (1: doctor, 2: nurse, 3: secretary, 4: patient)
+                    switch(result.role) {
+                        case 1: window.location.href = "/doctor_dashboard.html"; break;
+                        case 2: window.location.href = "/nurse_dashboard.html"; break;
+                        case 3: window.location.href = "/secretary_dashboard.html"; break;
+                        case 4: window.location.href = "/patient_form.html"; break;
+                        default: window.location.href = "/index.html";
+                    }
+
+                } else {
+                    messageDiv.style.color = "red";
+                    messageDiv.textContent = result.message || "Informations d'identification invalides.";
+                }
+
+            } catch (error) {
+                console.error("Erreur fetch:", error);
+                messageDiv.style.color = "red";
+                messageDiv.textContent = "Erreur de connexion au serveur.";
+            }
+        });
+    </script>
+</body>
+</html>

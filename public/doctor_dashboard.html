@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Médecin</title>
+</head>
+<body>
+    <h1>Bienvenue, Docteur!</h1>
+    
+    <h2>Mon Emploi du temps</h2>
+    <ul id="appointments-list">
+        </ul>
+
+    <h2>Notes de Consultation</h2>
+    <form id="consultationForm">
+        <label for="appointment_id">ID du rendez-vous:</label><br>
+        <input type="number" id="appointment_id" name="appointment_id" required><br><br>
+        
+        <label for="notes">Notes:</label><br>
+        <textarea id="notes" name="notes" required></textarea><br><br>
+        
+        <label for="diagnosis">Diagnostic:</label><br>
+        <input type="text" id="diagnosis" name="diagnosis" required><br><br>
+        
+        <button type="submit">Enregistrer les notes</button>
+    </form>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        const token = localStorage.getItem('jwtToken');
+        const doctorId = 1; // ID du médecin (à obtenir de l'objet utilisateur après la connexion)
+
+        async function fetchAppointments() {
+            try {
+                const response = await fetch(`${API_URL}/appointments/doctor/${doctorId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const appointments = await response.json();
+                
+                const list = document.getElementById('appointments-list');
+                list.innerHTML = '';
+                appointments.forEach(app => {
+                    const li = document.createElement('li');
+                    li.textContent = `Date: ${new Date(app.date_time).toLocaleString()} - Patient: ${app.patient_name} - Statut: ${app.status}`;
+                    list.appendChild(li);
+                });
+            } catch (error) {
+                console.error('Erreur lors de la récupération des rendez-vous:', error);
+            }
+        }
+        
+        document.getElementById('consultationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch(`${API_URL}/consultations`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    alert('Notes enregistrées avec succès!');
+                    e.target.reset();
+                } else {
+                    const result = await response.json();
+                    alert('Erreur: ' + (result.message |
+
+| JSON.stringify(result.errors)));
+                }
+            } catch (error) {
+                console.error('Erreur de soumission:', error);
+                alert('Erreur de connexion au serveur.');
+            }
+        });
+
+        fetchAppointments(); // Charge les rendez-vous au chargement de la page
+    </script>
+</body>
+</html>

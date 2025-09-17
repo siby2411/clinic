@@ -1,0 +1,52 @@
+<form id="consultationForm">
+  <label for="medecin_id">Médecin :</label>
+  <select id="medecin_id" name="medecin_id" required></select>
+
+  <label for="patient_id">Patient :</label>
+  <select id="patient_id" name="patient_id" required></select>
+
+  <label for="date_consultation">Date :</label>
+  <input type="date" id="date_consultation" name="date_consultation" required>
+
+  <label for="heure">Heure :</label>
+  <input type="time" id="heure" name="heure">
+
+  <label for="motif">Motif :</label>
+  <input type="text" id="motif" name="motif">
+
+  <label for="notes">Notes :</label>
+  <textarea id="notes" name="notes"></textarea>
+
+  <button type="submit">Ajouter Consultation</button>
+</form>
+
+<script>
+  async function populateSelect(endpoint, selectId, textField="nom", valueField="id") {
+    const res = await fetch(endpoint);
+    const data = await res.json();
+    const select = document.getElementById(selectId);
+    data.forEach(item => {
+      const opt = document.createElement("option");
+      opt.value = item[valueField];
+      opt.textContent = item[textField];
+      select.appendChild(opt);
+    });
+  }
+
+  // Remplir les selects
+  populateSelect("/api/medecins", "medecin_id", "nom"); // récupérer medecins
+  populateSelect("/api/patients", "patient_id", "name"); // récupérer patients
+
+  // Soumission formulaire
+  document.getElementById("consultationForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(e.target));
+    const res = await fetch("/api/consultations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+    const result = await res.json();
+    alert(result.message);
+  });
+</script>

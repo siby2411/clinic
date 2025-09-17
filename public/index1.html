@@ -1,0 +1,22 @@
+const express = require("express");
+const dotenv = require("dotenv");
+const cors = require("cors");
+const apiRoutes = require("./routes/api");
+
+dotenv.config();
+
+const app = express();
+
+// middlewares
+app.use(cors());
+app.use(express.json());
+app.use(express.static("public")); // pour servir login.html et autres pages
+
+// routes API
+app.use("/api", apiRoutes);
+
+// démarrage serveur
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Serveur en cours d'exécution sur le port ${PORT}`);
+});
