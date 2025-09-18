@@ -1,35 +1,34 @@
 const express = require("express");
-const path = require("path");
-const cors = require("cors");
-const dotenv = require("dotenv");
-dotenv.config();
-
 const app = express();
+const port = 3000;
+require("dotenv").config();
 
-// Middlewares
-app.use(cors());
+// Middlewares pour parser JSON et données URL-encoded
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "public"))); // fichiers statiques (HTML, CSS, JS)
+app.use(express.urlencoded({ extended: true }));
 
-// Import des routes API
-const patientsRoutes = require("./routes/patients");
-const medecinsRoutes = require("./routes/medecins");
-const consultationsRoutes = require("./routes/consultations");
-const rendezVousRoutes = require("./routes/rendez_vous");
-const paymentsRoutes = require("./routes/payments");
+// Servir les fichiers HTML/CSS/JS depuis le dossier "public"
+app.use(express.static("public"));
 
 // Routes API
-app.use("/api/patients", patientsRoutes);
+const medecinsRoutes = require("./routes/medecins");
+const patientsRoutes = require("./routes/patients");
+const appointmentsRoutes = require("./routes/appointments");
+const consultationsRoutes = require("./routes/consultations");
+const examensRoutes = require("./routes/examens");
+const departementsRoutes = require("./routes/departements");
+const natureConsultationRoutes = require("./routes/nature_consultation");
+
+// Utilisation des routes
 app.use("/api/medecins", medecinsRoutes);
+app.use("/api/patients", patientsRoutes);
+app.use("/api/appointments", appointmentsRoutes);
 app.use("/api/consultations", consultationsRoutes);
-app.use("/api/rendez_vous", rendezVousRoutes);
-app.use("/api/payments", paymentsRoutes);
+app.use("/api/examens", examensRoutes);
+app.use("/api/departements", departementsRoutes);
+app.use("/api/nature_consultation", natureConsultationRoutes);
 
-// Route dashboard / index
-app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "public/index.html"));
+// Démarrage du serveur
+app.listen(port, () => {
+  console.log(`Serveur en cours d'exécution sur le port ${port}`);
 });
-
-// Démarrage serveur
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Serveur en cours d'exécution sur le port ${PORT}`));

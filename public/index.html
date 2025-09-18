@@ -2,42 +2,46 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Dashboard Clinique</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Omega Informatique - Gestion médicale</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-  <header class="bg-primary text-white p-3">
-    <div class="container d-flex justify-content-between align-items-center">
-      <h1>Omega Knformatique</h1>
-      <p class="mb-0">Gestion Décentralisée Centre de Santé</p>
+<!-- Bandeau principal -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">Omega Informatique - Gestion médicale</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="medecins.html">Médecins</a></li>
+        <li class="nav-item"><a class="nav-link" href="patients.html">Patients</a></li>
+        <li class="nav-item"><a class="nav-link" href="appointments.html">Rendez-vous</a></li>
+        <li class="nav-item"><a class="nav-link" href="consultations.html">Consultations</a></li>
+        <li class="nav-item"><a class="nav-link" href="departements.html">Départements</a></li>
+        <li class="nav-item"><a class="nav-link" href="nature_consultation.html">Nature Consultation</a></li>
+      </ul>
     </div>
-  </header>
+  </div>
+</nav>
 
-  <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <div class="container">
-      <a class="navbar-brand" href="#">Menu</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav">
-          <li class="nav-item"><a class="nav-link" href="medecins.html">Médecins</a></li>
-          <li class="nav-item"><a class="nav-link" href="patients.html">Patients</a></li>
-          <li class="nav-item"><a class="nav-link" href="agenda.html">Agenda</a></li>
-          <li class="nav-item"><a class="nav-link" href="examens.html">Examens</a></li>
-          <li class="nav-item"><a class="nav-link" href="facturation.html">Facturation</a></li>
-          <li class="nav-item"><a class="nav-link" href="stock.html">Stock / Pharmacie</a></li>
-        </ul>
-      </div>
-    </div>
-  </nav>
+<div class="container">
+  <h1 class="mb-4">Bienvenue dans votre gestion médicale</h1>
+  <p>Utilisez le menu pour naviguer entre les modules : Médecins, Patients, Rendez-vous, Consultations, Départements et Nature de consultation.</p>
 
-  <main class="container my-5">
-    <h2>Bienvenue sur le Dashboard Général</h2>
-    <p>Sélectionnez une fonctionnalité dans le menu ci-dessus pour commencer.</p>
-  </main>
+  <!-- Exemple de boutons pour accès rapide -->
+  <div class="d-flex flex-wrap gap-3 mt-4">
+    <a href="medecins.html" class="btn btn-primary">Médecins</a>
+    <a href="patients.html" class="btn btn-success">Patients</a>
+    <a href="appointment.html" class="btn btn-warning">Rendez-vous</a>
+    <a href="consultation.html" class="btn btn-info text-white">Consultations</a>
+    <a href="departements.html" class="btn btn-secondary">Départements</a>
+    <a href="nature_consultation.html" class="btn btn-dark">Nature Consultation</a>
+  </div>
+</div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

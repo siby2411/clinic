@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestion des Rendez-Vous</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <!-- Bandeau -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">Omega Informatique - Gestion médicale</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h2 class="mb-4">Ajouter / Gérer un Rendez-Vous</h2>
+
+    <!-- Formulaire -->
+    <form id="appointmentForm">
+      <div class="mb-3">
+        <label class="form-label">Patient</label>
+        <select class="form-select" name="patient_id" required id="patientSelect"></select>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Médecin</label>
+        <select class="form-select" name="doctor_id" required id="medecinSelect"></select>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Date et Heure</label>
+        <input type="datetime-local" class="form-control" name="date_time" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Statut</label>
+        <select class="form-select" name="status">
+          <option value="prévu">Prévu</option>
+          <option value="confirmé">Confirmé</option>
+          <option value="annulé">Annulé</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Ajouter / Mettre à jour</button>
+    </form>
+
+    <div id="result" class="mt-3"></div>
+
+    <hr class="my-4">
+
+    <!-- Liste des rendez-vous -->
+    <h3>Liste des Rendez-Vous</h3>
+    <table class="table table-striped table-bordered">
+      <thead class="table-dark">
+        <tr>
+          <th>ID</th>
+          <th>Patient</th>
+          <th>Médecin</th>
+          <th>Date et Heure</th>
+          <th>Statut</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="appointments-list"></tbody>
+    </table>
+  </div>
+
+  <script>
+    let editingId = null;
+
+    // Récupérer les patients et médecins pour remplir les select
+    async function fetchPatientsAndMedecins() {
+      const patientsRes = await fetch('/api/patients/list');
+      const patients = await patientsRes.json();
+      const patientSelect = document.getElementById('patientSelect');
+      patientSelect.innerHTML = '';
+      patients.forEach(p => {
+        const option = document.createElement('option');
+        option.value = p.id;
+        option.text = `${p.name} (${p.code_patient})`;
+        patientSelect.appendChild(option);
+      });
+
+      const medecinsRes = await fetch('/api/medecins/list');
+      const medecins = await medecinsRes.json();
+      const medecinSelect = document.getElementById('medecinSelect');
+      medecinSelect.innerHTML = '';
+      medecins.forEach(m => {
+        const option = document.createElement('option');
+        option.value = m.id;
+        option.text = `${m.nom} ${m.prenom} (${m.code_medecin})`;
+        medecinSelect.appendChild(option);
+      });
+    }
+
+    // Récupérer et afficher la liste des rendez-vous
+    async function fetchAppointments() {
+      const res = await fetch('/api/appointments/list');
+      const appointments = await res.json();
+      const tbody = document.getElementById('appointments-list');
+      tbody.innerHTML = '';
+      appointments.forEach(a => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${a.id}</td>
+          <td>${a.patient_name || ''}</td>
+          <td>${a.medecin_nom || ''}</td>
+          <td>${new Date(a.date_time).toLocaleString()}</td>
+          <td>${a.status}</td>
+          <td>
+            <button class="btn btn-warning btn-sm" onclick="editAppointment(${a.id})">Modifier</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteAppointment(${a.id})">Supprimer</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Ajouter ou mettre à jour un rendez-vous
+    document.getElementById('appointmentForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const data = Object.fromEntries(new FormData(form).entries());
+
+      let url = '/api/appointments/add';
+      let method = 'POST';
+      if (editingId) {
+        url = `/api/appointments/update/${editingId}`;
+        method = 'PUT';
+      }
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      const result = await res.json();
+      document.getElementById('result').innerText = result.message;
+      form.reset();
+      editingId = null;
+      fetchAppointments();
+    });
+
+    // Supprimer un rendez-vous
+    async function deleteAppointment(id) {
+      if (confirm('Voulez-vous vraiment supprimer ce rendez-vous ?')) {
+        await fetch(`/api/appointments/delete/${id}`, { method: 'DELETE' });
+        fetchAppointments();
+      }
+    }
+
+    // Modifier un rendez-vous
+    async function editAppointment(id) {
+      editingId = id;
+      const res = await fetch(`/api/appointments/list`);
+      const appointments = await res.json();
+      const a = appointments.find(appt => appt.id === id);
+      if (a) {
+        document.getElementById('patientSelect').value = a.patient_id;
+        document.getElementById('medecinSelect').value = a.doctor_id;
+        document.querySelector('[name="date_time"]').value = new Date(a.date_time).toISOString().slice(0,16);
+        document.querySelector('[name="status"]').value = a.status;
+      }
+    }
+
+    // Initialisation
+    fetchPatientsAndMedecins();
+    fetchAppointments();
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

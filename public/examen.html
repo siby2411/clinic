@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestion des Examens</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">Omega Informatique - Gestion médicale</a>
+  </div>
+</nav>
+
+<div class="container">
+  <h2 class="mb-4">Ajouter / Gérer un Examen</h2>
+
+  <form id="examForm" class="mb-4">
+    <div class="row mb-3">
+      <div class="col">
+        <label class="form-label">Patient</label>
+        <select class="form-select" name="patient_id" id="patientSelect" required></select>
+      </div>
+      <div class="col">
+        <label class="form-label">Médecin</label>
+        <select class="form-select" name="medecin_id" id="medecinSelect" required></select>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Type d'Examen</label>
+      <input type="text" class="form-control" name="type_examen" required>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Résultat</label>
+      <input type="text" class="form-control" name="resultat">
+    </div>
+
+    <div class="row mb-3">
+      <div class="col">
+        <label class="form-label">Date de l'examen</label>
+        <input type="date" class="form-control" name="date_examen" required>
+      </div>
+      <div class="col">
+        <label class="form-label">Statut</label>
+        <select class="form-select" name="statut">
+          <option value="en attente">En attente</option>
+          <option value="réalisé">Réalisé</option>
+        </select>
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Ajouter Examen</button>
+  </form>
+
+  <div id="result" class="mb-3"></div>
+
+  <h3 class="mb-3">Liste des Examens</h3>
+  <table class="table table-striped table-bordered">
+    <thead class="table-dark">
+      <tr>
+        <th>ID</th>
+        <th>Patient</th>
+        <th>Médecin</th>
+        <th>Type</th>
+        <th>Résultat</th>
+        <th>Date</th>
+        <th>Statut</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="examens-list"></tbody>
+  </table>
+</div>
+
+<script>
+async function fetchPatients() {
+  const res = await fetch('/api/patients/list');
+  const patients = await res.json();
+  const select = document.getElementById('patientSelect');
+  select.innerHTML = '';
+  patients.forEach(p => {
+    const option = document.createElement('option');
+    option.value = p.id;
+    option.textContent = `${p.name} (${p.code_patient})`;
+    select.appendChild(option);
+  });
+}
+
+async function fetchMedecins() {
+  const res = await fetch('/api/medecins/list');
+  const medecins = await res.json();
+  const select = document.getElementById('medecinSelect');
+  select.innerHTML = '';
+  medecins.forEach(m => {
+    const option = document.createElement('option');
+    option.value = m.id;
+    option.textContent = `${m.nom} ${m.prenom} (${m.code_medecin})`;
+    select.appendChild(option);
+  });
+}
+
+async function fetchExamens() {
+  const res = await fetch('/api/examens/list');
+  const examens = await res.json();
+  const tbody = document.getElementById('examens-list');
+  tbody.innerHTML = '';
+  examens.forEach(e => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${e.id}</td>
+      <td>${e.patient_name}</td>
+      <td>${e.medecin_name}</td>
+      <td>${e.type_examen}</td>
+      <td>${e.resultat || ''}</td>
+      <td>${new Date(e.date_examen).toLocaleDateString()}</td>
+      <td>${e.statut}</td>
+      <td>
+        <button class="btn btn-warning btn-sm" onclick="editExamen(${e.id})">Modifier</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteExamen(${e.id})">Supprimer</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// Ajouter examen
+document.getElementById('examForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const data = Object.fromEntries(new FormData(form).entries());
+
+  const res = await fetch('/api/examens/add', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+
+  const result = await res.json();
+  if(result.error) {
+    document.getElementById('result').textContent = result.error;
+  } else {
+    document.getElementById('result').textContent = 'Examen ajouté avec succès !';
+    form.reset();
+    fetchExamens();
+  }
+});
+
+// Supprimer examen
+async function deleteExamen(id) {
+  if(confirm('Voulez-vous vraiment supprimer cet examen ?')) {
+    await fetch(`/api/examens/delete/${id}`, { method: 'DELETE' });
+    fetchExamens();
+  }
+}
+
+// Modifier examen
+function editExamen(id) {
+  alert('Fonction modification à implémenter selon vos besoins.');
+}
+
+// Initialisation
+fetchPatients();
+fetchMedecins();
+fetchExamens();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

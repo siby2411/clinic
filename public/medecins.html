@@ -1,36 +1,183 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Formulaire Médecin</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestion des Médecins</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body class="container mt-4">
-  <h2>Enregistrement d’un Médecin</h2>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">Omega Informatique - Gestion médicale</a>
+  </div>
+</nav>
+
+<div class="container">
+  <h2>Ajouter / Modifier un Médecin</h2>
   <form id="medecinForm">
+    <input type="hidden" name="id" id="medecinId">
     <div class="mb-3">
-      <label for="user_id" class="form-label">Utilisateur associé (user_id)</label>
-      <input type="number" id="user_id" name="user_id" class="form-control" required>
+      <label class="form-label">Nom</label>
+      <input type="text" class="form-control" name="nom" id="nom" required>
     </div>
     <div class="mb-3">
-      <label for="nom" class="form-label">Nom complet</label>
-      <input type="text" id="nom" name="nom" class="form-control" required>
+      <label class="form-label">Prénom</label>
+      <input type="text" class="form-control" name="prenom" id="prenom" required>
     </div>
     <div class="mb-3">
-      <label for="specialite" class="form-label">Spécialité</label>
-      <input type="text" id="specialite" name="specialite" class="form-control">
+      <label class="form-label">Date de naissance</label>
+      <input type="date" class="form-control" name="date_naissance" id="date_naissance" required>
     </div>
     <div class="mb-3">
-      <label for="telephone" class="form-label">Téléphone</label>
-      <input type="text" id="telephone" name="telephone" class="form-control">
+      <label class="form-label">Profession</label>
+      <input type="text" class="form-control" name="profession" id="profession">
     </div>
     <div class="mb-3">
-      <label for="email" class="form-label">Email</label>
-      <input type="email" id="email" name="email" class="form-control">
+      <label class="form-label">Diplôme</label>
+      <input type="text" class="form-control" name="diplome" id="diplome">
     </div>
-    <button type="submit" class="btn btn-success">Enregistrer</button>
+    <div class="mb-3">
+      <label class="form-label">Sexe</label>
+      <select class="form-select" name="sexe" id="sexe" required>
+        <option value="M">M</option>
+        <option value="F">F</option>
+      </select>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Téléphone</label>
+      <input type="text" class="form-control" name="telephone" id="telephone">
+    </div>
+    <input type="hidden" name="user_id" value="1">
+    <button type="submit" class="btn btn-primary" id="submitBtn">Ajouter</button>
+    <button type="button" class="btn btn-secondary" id="cancelBtn" style="display:none;">Annuler</button>
   </form>
 
-  <script src="/js/medecins.js"></script>
+  <div id="result" class="mt-3"></div>
+
+  <h3 class="mt-5">Liste des Médecins</h3>
+  <table class="table table-striped table-bordered mt-3">
+    <thead class="table-dark">
+      <tr>
+        <th>ID</th>
+        <th>Nom</th>
+        <th>Prénom</th>
+        <th>Date Naissance</th>
+        <th>Profession</th>
+        <th>Diplôme</th>
+        <th>Sexe</th>
+        <th>Téléphone</th>
+        <th>Code Médecin</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="medecinsTable"></tbody>
+  </table>
+</div>
+
+<script>
+async function loadMedecins() {
+  const res = await fetch("/api/medecins/list");
+  const medecins = await res.json();
+  const tbody = document.getElementById("medecinsTable");
+  tbody.innerHTML = "";
+  medecins.forEach(m => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${m.id}</td>
+      <td>${m.nom}</td>
+      <td>${m.prenom}</td>
+      <td>${m.date_naissance ? new Date(m.date_naissance).toLocaleDateString() : ""}</td>
+      <td>${m.profession || ""}</td>
+      <td>${m.diplome || ""}</td>
+      <td>${m.sexe || ""}</td>
+      <td>${m.telephone || ""}</td>
+      <td>${m.code_medecin}</td>
+      <td>
+        <button class="btn btn-warning btn-sm" onclick="editMedecin(${m.id})">Modifier</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteMedecin(${m.id})">Supprimer</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+document.getElementById("medecinForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const id = document.getElementById("medecinId").value;
+  const data = {
+    nom: document.getElementById("nom").value,
+    prenom: document.getElementById("prenom").value,
+    date_naissance: document.getElementById("date_naissance").value,
+    profession: document.getElementById("profession").value,
+    diplome: document.getElementById("diplome").value,
+    sexe: document.getElementById("sexe").value,
+    telephone: document.getElementById("telephone").value,
+    user_id: 1
+  };
+
+  let url = "/api/medecins/add";
+  let method = "POST";
+  if (id) {
+    url = `/api/medecins/update/${id}`;
+    method = "PUT";
+  }
+
+  const res = await fetch(url, {
+    method: method,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+  const result = await res.json();
+
+  document.getElementById("result").innerText = result.message || "Opération réussie !";
+  document.getElementById("medecinForm").reset();
+  document.getElementById("submitBtn").innerText = "Ajouter";
+  document.getElementById("cancelBtn").style.display = "none";
+  document.getElementById("medecinId").value = "";
+  loadMedecins();
+});
+
+function editMedecin(id) {
+  fetch(`/api/medecins/list`)
+    .then(res => res.json())
+    .then(medecins => {
+      const m = medecins.find(x => x.id === id);
+      if (m) {
+        document.getElementById("medecinId").value = m.id;
+        document.getElementById("nom").value = m.nom;
+        document.getElementById("prenom").value = m.prenom;
+        document.getElementById("date_naissance").value = m.date_naissance;
+        document.getElementById("profession").value = m.profession;
+        document.getElementById("diplome").value = m.diplome;
+        document.getElementById("sexe").value = m.sexe;
+        document.getElementById("telephone").value = m.telephone;
+        document.getElementById("submitBtn").innerText = "Modifier";
+        document.getElementById("cancelBtn").style.display = "inline-block";
+      }
+    });
+}
+
+document.getElementById("cancelBtn").addEventListener("click", () => {
+  document.getElementById("medecinForm").reset();
+  document.getElementById("submitBtn").innerText = "Ajouter";
+  document.getElementById("cancelBtn").style.display = "none";
+  document.getElementById("medecinId").value = "";
+});
+
+async function deleteMedecin(id) {
+  if (!confirm("Voulez-vous vraiment supprimer ce médecin ?")) return;
+  const res = await fetch(`/api/medecins/delete/${id}`, { method: "DELETE" });
+  const result = await res.json();
+  document.getElementById("result").innerText = result.message;
+  loadMedecins();
+}
+
+// Chargement initial
+loadMedecins();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
